@@ -18,7 +18,7 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-    let users = await User.find().select('name email updated created')
+    let users = await User.find().select('name email updated created role')
     res.json(users)
   } catch (err) {
     return res.status(400).json({
@@ -88,4 +88,37 @@ const removeAll = async (req, res) => {
   }
 }
 
-export default { create, userByID, read, list, remove, update, removeAll }
+const toggleRole = async (req, res) => {
+  try {
+    let user = req.profile
+    const newRole = user.role === 'admin' ? 'user' : 'admin'
+    user.role = newRole
+    user.updated = Date.now()
+    await user.save()
+    user.hashed_password = undefined
+    user.salt = undefined
+    res.json(user)
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err)
+    })
+  }
+}
+
+const getCurrentUser = async (req, res) => {
+  try {
+    let user = await User.findById(req.auth._id).select('-hashed_password -salt')
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found"
+      })
+    }
+    res.json(user)
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err)
+    })
+  }
+}
+
+export default { create, userByID, read, list, remove, update, removeAll, toggleRole, getCurrentUser }

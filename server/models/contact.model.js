@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const contactSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: 'User is required'
+  },
   firstname: {
     type: String,
     required: 'First name is required',

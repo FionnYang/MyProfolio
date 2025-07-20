@@ -4,6 +4,7 @@ import errorHandler from './error.controller.js'
 
 const create = async (req, res) => {
   const education = new Education(req.body)
+  education.user = req.auth._id
   try {
     await education.save()
     res.status(200).json({ message: "Education created" })
@@ -14,7 +15,16 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-    const educations = await Education.find()
+    const educations = await Education.find().populate('user', 'name email')
+    res.json(educations)
+  } catch (err) {
+    res.status(400).json({ error: errorHandler.getErrorMessage(err) })
+  }
+}
+
+const listByUser = async (req, res) => {
+  try {
+    const educations = await Education.find({ user: req.auth._id }).populate('user', 'name email')
     res.json(educations)
   } catch (err) {
     res.status(400).json({ error: errorHandler.getErrorMessage(err) })
@@ -65,4 +75,4 @@ const removeAll = async (req, res) => {
   }
 }
 
-export default { create, educationByID, read, list, update, remove, removeAll }
+export default { create, educationByID, read, list, listByUser, update, remove, removeAll }

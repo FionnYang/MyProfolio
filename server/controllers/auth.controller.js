@@ -17,7 +17,8 @@ const signin = async (req, res) => {
             user: {
                 _id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                role: user.role
             }
         })
     } catch (err) {
@@ -43,4 +44,47 @@ const hasAuthorization = (req, res, next) => {
     }
     next()
 }
-export default { signin, signout, requireSignin, hasAuthorization }
+
+const hasAdminAuthorization = async (req, res, next) => {
+    try {
+        // Get the current user from the database to check their role
+        const currentUser = await User.findById(req.auth._id)
+        if (!currentUser || currentUser.role !== 'admin') {
+            return res.status('403').json({
+                error: "Admin authorization required"
+            })
+        }
+        next()
+    } catch (err) {
+        return res.status('400').json({
+            error: "Could not verify admin authorization"
+        })
+    }
+}
+
+const hasUserOrAdminAuthorization = async (req, res, next) => {
+    try {
+        // Check if user is trying to access their own profile
+        const isOwnProfile = req.profile && req.auth && req.profile._id == req.auth._id
+        
+        if (isOwnProfile) {
+            // User can access their own profile
+            return next()
+        }
+        
+        // If not own profile, check if user is admin
+        const currentUser = await User.findById(req.auth._id)
+        if (!currentUser || currentUser.role !== 'admin') {
+            return res.status('403').json({
+                error: "User can only access own profile or admin authorization required"
+            })
+        }
+        next()
+    } catch (err) {
+        return res.status('400').json({
+            error: "Could not verify authorization"
+        })
+    }
+}
+
+export default { signin, signout, requireSignin, hasAuthorization, hasAdminAuthorization, hasUserOrAdminAuthorization }

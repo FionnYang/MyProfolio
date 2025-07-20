@@ -5,8 +5,8 @@ import compress from 'compression'
 import cors from 'cors'
 import helmet from 'helmet'
 import authRoutes from './routes/auth.routes.js'
-
 import userRoutes from './routes/user.routes.js'
+
 import contactRoutes from './routes/contact.routes.js'
 import projectRoutes from './routes/project.routes.js'
 import educationRoutes from './routes/education.routes.js'
@@ -26,7 +26,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/contacts', contactRoutes)
 app.use('/api/projects', projectRoutes)
-app.use('/api/qualifications', educationRoutes)
+app.use('/api/educations', educationRoutes)
 
 app.use((err, req, res, next) => {
     if (err.name === 'UnauthorizedError') {

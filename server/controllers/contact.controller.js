@@ -4,6 +4,7 @@ import errorHandler from './error.controller.js'
 
 const create = async (req, res) => {
   const contact = new Contact(req.body)
+  contact.user = req.auth._id
   try {
     await contact.save()
     res.status(200).json({ message: "Contact created" })
@@ -14,7 +15,16 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-    const contacts = await Contact.find()
+    const contacts = await Contact.find().populate('user', 'name email')
+    res.json(contacts)
+  } catch (err) {
+    res.status(400).json({ error: errorHandler.getErrorMessage(err) })
+  }
+}
+
+const listByUser = async (req, res) => {
+  try {
+    const contacts = await Contact.find({ user: req.auth._id }).populate('user', 'name email')
     res.json(contacts)
   } catch (err) {
     res.status(400).json({ error: errorHandler.getErrorMessage(err) })
@@ -64,4 +74,4 @@ const removeAll = async (req, res) => {
     res.status(400).json({ error: errorHandler.getErrorMessage(err) })
   }
 }
-export default { create, contactByID, read, list, update, remove, removeAll }
+export default { create, contactByID, read, list, listByUser, update, remove, removeAll }
