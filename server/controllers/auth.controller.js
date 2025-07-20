@@ -6,9 +6,9 @@ const signin = async (req, res) => {
     try {
         let user = await User.findOne({ "email": req.body.email })
         if (!user)
-            return res.status('401').json({ error: "User not found" })
+            return res.status(401).json({ error: "User not found" })
         if (!user.authenticate(req.body.password)) {
-            return res.status('401').send({ error: "Email and password don't match." })
+            return res.status(401).send({ error: "Email and password don't match." })
         }
         const token = jwt.sign({ _id: user._id }, config.jwtSecret)
         res.cookie('t', token, { expire: new Date() + 9999 })
@@ -22,7 +22,7 @@ const signin = async (req, res) => {
             }
         })
     } catch (err) {
-        return res.status('401').json({ error: "Could not sign in" })
+        return res.status(401).json({ error: "Could not sign in" })
     }
 }
 const signout = (req, res) => {
@@ -38,53 +38,77 @@ const hasAuthorization = (req, res, next) => {
     const authorized = req.profile && req.auth
         && req.profile._id == req.auth._id
     if (!(authorized)) {
-        return res.status('403').json({
+        return res.status(403).json({
             error: "User is not authorized"
         })
     }
     next()
 }
 
-const hasAdminAuthorization = async (req, res, next) => {
+const requireAdmin = async (req, res, next) => {
     try {
-        // Get the current user from the database to check their role
-        const currentUser = await User.findById(req.auth._id)
-        if (!currentUser || currentUser.role !== 'admin') {
-            return res.status('403').json({
-                error: "Admin authorization required"
+        const user = await User.findById(req.auth._id)
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({
+                error: "Admin access required"
             })
         }
         next()
     } catch (err) {
-        return res.status('400').json({
-            error: "Could not verify admin authorization"
+        return res.status(400).json({
+            error: "Could not verify admin status"
         })
     }
 }
 
-const hasUserOrAdminAuthorization = async (req, res, next) => {
+const hasAuthorizationOrAdmin = async (req, res, next) => {
     try {
-        // Check if user is trying to access their own profile
-        const isOwnProfile = req.profile && req.auth && req.profile._id == req.auth._id
+        // Check if user is editing their own profile
+        const authorized = req.profile && req.auth && req.profile._id == req.auth._id
         
-        if (isOwnProfile) {
-            // User can access their own profile
+        if (authorized) {
             return next()
         }
         
-        // If not own profile, check if user is admin
-        const currentUser = await User.findById(req.auth._id)
-        if (!currentUser || currentUser.role !== 'admin') {
-            return res.status('403').json({
-                error: "User can only access own profile or admin authorization required"
-            })
+        // If not authorized to edit own profile, check if user is admin
+        const user = await User.findById(req.auth._id)
+        if (user && user.role === 'admin') {
+            return next()
         }
-        next()
+        
+        return res.status(403).json({
+            error: "User is not authorized"
+        })
     } catch (err) {
-        return res.status('400').json({
+        return res.status(400).json({
             error: "Could not verify authorization"
         })
     }
 }
 
-export default { signin, signout, requireSignin, hasAuthorization, hasAdminAuthorization, hasUserOrAdminAuthorization }
+const canToggleRole = async (req, res, next) => {
+    try {
+        // Check if user is toggling their own role
+        const isSelfToggle = req.profile && req.auth && req.profile._id == req.auth._id
+        
+        if (isSelfToggle) {
+            return next()
+        }
+        
+        // If not toggling own role, check if user is admin
+        const user = await User.findById(req.auth._id)
+        if (user && user.role === 'admin') {
+            return next()
+        }
+        
+        return res.status(403).json({
+            error: "Only admins can toggle other users' roles"
+        })
+    } catch (err) {
+        return res.status(400).json({
+            error: "Could not verify role toggle authorization"
+        })
+    }
+}
+
+export default { signin, signout, requireSignin, hasAuthorization, requireAdmin, hasAuthorizationOrAdmin, canToggleRole }

@@ -7,18 +7,18 @@ const router = express.Router()
 router.route('/')
   .post(userCtrl.create)
   .get(userCtrl.list)
-  .delete(userCtrl.removeAll)
+  .delete(authCtrl.requireSignin, authCtrl.requireAdmin, userCtrl.removeAll)
 
 router.route('/current')
   .get(authCtrl.requireSignin, userCtrl.getCurrentUser)
 
 router.route('/:userId')
   .get(authCtrl.requireSignin, userCtrl.read)
-  .put(authCtrl.requireSignin, authCtrl.hasUserOrAdminAuthorization, userCtrl.update)
-  .delete(authCtrl.requireSignin, authCtrl.hasAdminAuthorization, userCtrl.remove)
+  .put(authCtrl.requireSignin, authCtrl.hasAuthorizationOrAdmin, userCtrl.update)
+  .delete(authCtrl.requireSignin, authCtrl.requireAdmin, userCtrl.remove)
 
 router.route('/:userId/toggle-role')
-  .put(authCtrl.requireSignin, authCtrl.hasAdminAuthorization, userCtrl.toggleRole)
+  .put(authCtrl.requireSignin, authCtrl.canToggleRole, userCtrl.toggleRole)
   
 router.param('userId', userCtrl.userByID)
 
