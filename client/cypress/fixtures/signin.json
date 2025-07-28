@@ -1,0 +1,33 @@
+{
+  "validUser": {
+    "email": "fionn111@gmail.com",
+    "password": "fionn111"
+  },
+  "invalidUser": {
+    "email": "invalid@email.com",
+    "password": "wrongpassword"
+  },
+  "testUsers": [
+    {
+      "email": "user1@test.com",
+      "password": "password123",
+      "expectedError": null
+    },
+    {
+      "email": "user2@test.com",
+      "password": "password456",
+      "expectedError": "User not found"
+    },
+    {
+      "email": "disabled@test.com",
+      "password": "password789",
+      "expectedError": "Account has been disabled"
+    }
+  ],
+  "errorMessages": {
+    "invalidCredentials": "Email or password is incorrect",
+    "userNotFound": "User not found",
+    "accountDisabled": "Account has been disabled",
+    "networkError": "Network error occurred"
+  }
+}

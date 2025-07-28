@@ -7,5 +7,13 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3000',
     },
+    historyApiFallback: true,
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html',
+      }
+    }
+  }
 })
