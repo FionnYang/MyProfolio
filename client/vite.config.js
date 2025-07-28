@@ -10,10 +10,7 @@ export default defineConfig({
     historyApiFallback: true,
   },
   build: {
-    rollupOptions: {
-      input: {
-        main: './index.html',
-      }
-    }
+    emptyOutDir: true,
+    outDir: "../dist/app",
   }
 })
