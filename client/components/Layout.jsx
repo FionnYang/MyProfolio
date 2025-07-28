@@ -29,7 +29,7 @@ export default function Layout() {
                 </Link>
                 <Link to="/contact" className="nav-link">Contact Me</Link>
                 
-                {/*  */}
+                {/* Authentication-based navigation */}
                 {!isAuthenticated ? (
                     <>
                         <Link to="/signin" className="nav-link">Sign In</Link>
